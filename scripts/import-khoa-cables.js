@@ -116,13 +116,20 @@ async function readOneShapefile(shpPath, idPrefix) {
       const coords = reprojectCoords(rawCoords, transformPoint);
       const totalPoints = coords.reduce((sum, line) => sum + line.length, 0);
       pointCounts.push(totalPoints);
+      const props = feature.properties || {};
+      // OBJNAM/NOBJNM are consistently null in this dataset (no commercial
+      // cable names) — findNearestCable()/enrichEvent() display `.name` in
+      // evidence text, so this MUST be a real string, not undefined, or
+      // evidence reads "X nm from undefined".
+      const name = props.OBJNAM || props.NOBJNM || `Unnamed submarine cable (KHOA, ENC ${props.ENC_NO || "?"})`;
       records.push({
         id: `${idPrefix}-${index}`,
+        name,
         source: "khoa",
         enc_level: idPrefix,
-        properties: feature.properties || {},
+        properties: props,
         notable: NOTABLE_FIELDS.reduce((acc, key) => {
-          if (feature.properties && feature.properties[key] !== undefined) acc[key] = feature.properties[key];
+          if (props[key] !== undefined) acc[key] = props[key];
           return acc;
         }, {}),
         coords
