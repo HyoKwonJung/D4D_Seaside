@@ -1,0 +1,12 @@
+# Foundry OSDK 사설 npm 레지스트리 설정.
+# Developer Console > (앱) > Overview / SDK 페이지에서 실제 <REGISTRY-URL> 을 복사해 넣으세요.
+# 이 파일을 .npmrc 로 복사한 뒤, 셸에서 FOUNDRY_TOKEN 환경변수를 설정하면 됩니다.
+#
+#   cp .npmrc.example .npmrc          (PowerShell: Copy-Item .npmrc.example .npmrc)
+#   export FOUNDRY_TOKEN=<your-foundry-token>   (PowerShell: $env:FOUNDRY_TOKEN="...")
+#
+# <REGISTRY-URL> 예시 형태:
+#   <stack>.palantirfoundry.com/artifacts/api/repositories/<repo-rid>/contents/release/npm
+
+@cableguard-dashboard-backend:registry=https://<REGISTRY-URL>
+//<REGISTRY-URL>:_authToken=${FOUNDRY_TOKEN}

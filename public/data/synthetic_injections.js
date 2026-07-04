@@ -284,31 +284,31 @@ window.SYNTHETIC_EVENTS = [
       "Synthetic matching context reduces immediate priority."
     ]
   },
-  {
-    id: "EVT-LOITER-FAR-001",
-    source: "synthetic_injection",
-    synthetic: true,
-    scenario_id: "loitering_far_reference",
-    event_type: "ais_loitering",
-    vessel_id: "SYN-LOITER-003",
-    vessel_name: "FV Demo Waiting",
-    mmsi: "999000011",
-    lat: 35.62,
-    lon: 127.92,
-    timestamp: "2026-07-04T12:00:00Z",
-    duration_h: 5.0,
-    speed_kn: 1.5,
-    heading_deg: 315,
-    distance_to_cable_nm: 10.0,
-    nearest_cable: "Jeju-Mainland 3",
-    region: "Busan-Geoje",
-    ais_status: "on",
-    sar_matched: null,
-    description: "Loitering reference case farther from cable corridors.",
-    evidence: [
-      "Low-speed loitering is present, but the nearest cable is outside the watch zone."
-    ]
-  },
+  // {
+  //   id: "EVT-LOITER-FAR-001",
+  //   source: "synthetic_injection",
+  //   synthetic: true,
+  //   scenario_id: "loitering_far_reference",
+  //   event_type: "ais_loitering",
+  //   vessel_id: "SYN-LOITER-003",
+  //   vessel_name: "FV Demo Waiting",
+  //   mmsi: "999000011",
+  //   lat: 35.62,
+  //   lon: 127.92,
+  //   timestamp: "2026-07-04T12:00:00Z",
+  //   duration_h: 5.0,
+  //   speed_kn: 1.5,
+  //   heading_deg: 315,
+  //   distance_to_cable_nm: 10.0,
+  //   nearest_cable: "Jeju-Mainland 3",
+  //   region: "Busan-Geoje",
+  //   ais_status: "on",
+  //   sar_matched: null,
+  //   description: "Loitering reference case farther from cable corridors.",
+  //   evidence: [
+  //     "Low-speed loitering is present, but the nearest cable is outside the watch zone."
+  //   ]
+  // },
   {
     id: "EVT-LIVE-REF-001",
     source: "synthetic_injection",
@@ -454,19 +454,19 @@ window.SYNTHETIC_TRACKS = [
       [130.42, 37.36, "2026-07-04T10:55:00Z", 2.9]
     ]
   },
-  {
-    vessel_id: "SYN-LOITER-003",
-    vessel_name: "FV Demo Waiting",
-    mmsi: "999000011",
-    track_type: "normal",
-    related_event_id: "EVT-LOITER-FAR-001",
-    coordinates: [
-      [127.86, 35.58, "2026-07-04T08:00:00Z", 1.6],
-      [127.91, 35.62, "2026-07-04T09:30:00Z", 1.4],
-      [127.87, 35.66, "2026-07-04T10:50:00Z", 1.7],
-      [127.92, 35.62, "2026-07-04T12:00:00Z", 1.5]
-    ]
-  },
+  // {
+  //   vessel_id: "SYN-LOITER-003",
+  //   vessel_name: "FV Demo Waiting",
+  //   mmsi: "999000011",
+  //   track_type: "normal",
+  //   related_event_id: "EVT-LOITER-FAR-001",
+  //   coordinates: [
+  //     [127.86, 35.58, "2026-07-04T08:00:00Z", 1.6],
+  //     [127.91, 35.62, "2026-07-04T09:30:00Z", 1.4],
+  //     [127.87, 35.66, "2026-07-04T10:50:00Z", 1.7],
+  //     [127.92, 35.62, "2026-07-04T12:00:00Z", 1.5]
+  //   ]
+  // },
   {
     vessel_id: "SYN-LIVE-REF-001",
     vessel_name: "MV Demo Normal Transit",

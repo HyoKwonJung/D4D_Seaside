@@ -46,7 +46,9 @@
       ais_gap: 20,
       encounter: 25,
       dragging_like: 35,
-      live_ais_review: 10
+      live_ais_review: 10,
+      rf_dark: 35,
+      sar_dark: 35
     };
     let score = base[event.event_type] || 0;
     const distance = toNumber(event.distance_to_cable_nm);
@@ -68,7 +70,10 @@
     }
     if (event.ais_status === "off") score += 20;
     if (event.ais_status === "intermittent") score += 12;
+    // AIS를 정상 송신 중인 협조 선박은 감점 (off +20 의 대칭)
+    if (event.ais_status === "on") score -= 12;
     if (event.sar_matched === false) score += 15;
+    if (event.rf_matched === false) score += 15;
     if (event.event_type === "dragging_like" && speed !== null && speed <= 3) score += 15;
     if (event.event_type === "encounter" && distance !== null && distance <= 5) score += 10;
 
@@ -89,8 +94,11 @@
     const duration = toNumber(event.duration_h);
     const speed = toNumber(event.speed_kn);
 
-    if (event.event_type === "dark_sar" && event.sar_matched === false) {
-      evidence.add("Unmatched SAR-like detection near cable route.");
+    if ((event.event_type === "dark_sar" || event.event_type === "sar_dark") && event.sar_matched === false) {
+      evidence.add("Unmatched SAR detection near cable route (no AIS correlation).");
+    }
+    if (event.event_type === "rf_dark" && event.rf_matched === false) {
+      evidence.add("RF emission detected with no matching AIS track (potential dark vessel).");
     }
     if (distance !== null) {
       if (distance <= 1) evidence.add(`Within ${formatDistance(distance)} of nearest submarine cable.`);
@@ -118,6 +126,9 @@
     if (event.event_type === "live_ais_review" && event.source === "aisstream") {
       evidence.add("Live AIS review is unverified and requires confirmation before escalation.");
     }
+    if (event.ais_status === "on") {
+      evidence.add("Vessel is actively transmitting AIS (cooperative behavior lowers the score).");
+    }
     if (score >= 70) {
       evidence.add("Computed risk score reaches the Very High prioritization band.");
     }
@@ -126,6 +137,9 @@
 
   function generateRecommendation(event, score, level) {
     const distance = toNumber(event.distance_to_cable_nm);
+    if (event.event_type === "rf_dark" || event.event_type === "sar_dark") {
+      return "Unmatched sensor detection with no AIS. Classify as potential dark vessel. Retask patrol/UAV/coastal radar to verify. This is risk prioritization, not hostile-intent confirmation.";
+    }
     if (level === "Very High" && event.event_type === "dark_sar" && distance !== null && distance <= 3) {
       return "Prioritize immediate confirmation. Retask UAV/SAR or coastal radar to verify the contact. Monitor likely egress corridor.";
     }
@@ -146,7 +160,6 @@
     }
     return "Maintain watch and seek corroborating information before escalation. This is risk prioritization, not hostile-intent confirmation.";
   }
-
   function inferRegion(lat, lon) {
     if (lat >= 33 && lat <= 34.4 && lon >= 126 && lon <= 128.2) return "Jeju";
     if (lat >= 34.2 && lat <= 35.6 && lon >= 128 && lon <= 129.8) return "Busan-Geoje";
@@ -181,6 +194,14 @@
     let score = calculateRiskScore(event);
     if (event.source === "aisstream" && event.event_type === "live_ais_review") {
       score = Math.min(score, 49);
+    }
+    // AIS를 정상 송신 중이고 다크 징후(SAR/RF 미매칭)가 없는 라이브 이벤트는
+    // Very High(70+)로 자동 격상하지 않는다. 상한 69 = High 최대치.
+    if (event.source === "aisstream"
+      && event.ais_status === "on"
+      && event.sar_matched !== false
+      && event.rf_matched !== false) {
+      score = Math.min(score, 69);
     }
 
     const level = getRiskLevel(score);

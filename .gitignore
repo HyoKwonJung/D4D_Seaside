@@ -1,7 +1,12 @@
 node_modules/
 .env
 .env.local
+.npmrc
+.foundry-token-cache.json
 *.log
 .vercel/
 lib/Untitled
 ~$*
+
+__pycache__/
+*.pyc
