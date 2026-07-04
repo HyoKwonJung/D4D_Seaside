@@ -367,20 +367,21 @@
 
       const start = latLngs[0];
       const end = latLngs[latLngs.length - 1];
+      const trackPopup = endpoint => `<div class="cg-popup"><div class="pt">${escapeHtml(track.vessel_name)}</div><div class="pr"><span class="pl">Track point:</span>${endpoint}</div><div class="pr"><span class="pl">Track:</span>${escapeHtml(track.track_type)}</div><div class="pr"><span class="pl">Source:</span>Synthetic Demo Injection</div></div>`;
       L.circleMarker(start, {
-        radius: 3,
+        radius: 5,
         color: style.color,
         weight: 1,
         fillColor: "#020814",
         fillOpacity: 0.9
-      }).bindTooltip("Track start", { direction: "top" }).addTo(layers.syntheticTracks);
+      }).bindTooltip("Track start", { direction: "top" }).bindPopup(trackPopup("Start"), { maxWidth: 240 }).addTo(layers.syntheticTracks);
       L.circleMarker(end, {
-        radius: 4,
+        radius: 5,
         color: style.color,
         weight: 1,
         fillColor: style.color,
         fillOpacity: 0.9
-      }).bindTooltip("Track end", { direction: "top" }).addTo(layers.syntheticTracks);
+      }).bindTooltip("Track end", { direction: "top" }).bindPopup(trackPopup("End"), { maxWidth: 240 }).addTo(layers.syntheticTracks);
     });
 
     state.syntheticEvents
@@ -993,11 +994,13 @@
       icon: L.divIcon({
         className: "live-ais-dot",
         html: "",
-        iconSize: [9, 9],
-        iconAnchor: [4, 4],
-        popupAnchor: [0, -6]
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+        popupAnchor: [0, -12]
       }),
-      opacity: 0.74,
+      keyboard: true,
+      opacity: 0.78,
+      riseOnHover: true,
       title: "Live AIS - unassessed"
     }).bindPopup(popup, { maxWidth: 260 });
     marker.addTo(layers.liveAIS);

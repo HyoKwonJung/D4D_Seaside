@@ -467,12 +467,34 @@ body {
 }
 
 .live-ais-dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.live-ais-dot::before {
+  position: absolute;
+  top: 6px;
+  left: 6px;
   width: 9px;
   height: 9px;
   border: 1px solid rgba(220, 245, 255, 0.7);
   border-radius: 50%;
   background: rgba(96, 165, 250, 0.68);
   box-shadow: 0 0 10px rgba(96, 165, 250, 0.55);
+  content: "";
+}
+
+.live-ais-dot:hover::before,
+.live-ais-dot:focus-visible::before {
+  border-color: rgba(255, 255, 255, 0.95);
+  background: rgba(125, 211, 252, 0.86);
+  box-shadow: 0 0 0 5px rgba(125, 211, 252, 0.12), 0 0 16px rgba(125, 211, 252, 0.78);
 }
 
 .leaflet-control-scale-line {
