@@ -1,6 +1,6 @@
 # 해저케이블 위협 인텔리전스 확장 설계서
 
-**대상 브랜치**: `feature/threat-intel-and-dark-vessel-detection` (origin에 push 전, 로컬 검토용)
+**대상 브랜치**: `feature/threat-intel-and-dark-vessel-detection` (PR로 제출됨, 팀 검토 대기)
 **작성일**: 2026-07-04
 **목표**: CableGuard-MVP에 (A) 지역별 감시 가치 스코어링, (B) 공격 전략 가성비 참조 데이터, (C) AIS 꺼짐(다크선박) 위치추론을 추가하여, "왜 이 구역을 지키는가"와 "AIS를 꺼도 탐지된다"를 실제로 증명하는 시스템으로 확장한다.
 

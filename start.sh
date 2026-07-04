@@ -1,11 +1,10 @@
 #!/bin/bash
 #==============================================================================
-# prj-d4d_seaside-builder (shared / CableGuard-MVP) - start.sh
-# Type: node | Default Port: 10501 (allocated via think-manager)
+# CableGuard-MVP - start.sh
+# Type: node | Default Port: 3000 (matches .env.example)
 #
-# This is the GitHub team repo (github.com/HyoKwonJung/D4D_Seaside), cloned
-# into shared/. Registered separately from the personal/ sandbox (port 10500)
-# in think-manager/projects.json as "prj-d4d_seaside-builder-shared".
+# Convenience wrapper around `npm start` with PID-file-based start/stop/
+# status/restart/kill and automatic `npm install` / `.env` bootstrap.
 #
 # Usage:
 #   bash start.sh              Start the project (default)
@@ -13,12 +12,13 @@
 #   bash start.sh restart      Stop then start
 #   bash start.sh status       Show current status
 #   bash start.sh kill         Force kill the process
+#   bash start.sh start 4000   Start on a specific port
 #==============================================================================
 set -euo pipefail
 
-PROJECT_NAME="prj-d4d_seaside-builder (shared / CableGuard-MVP)"
+PROJECT_NAME="CableGuard-MVP"
 DIR="$(cd "$(dirname "$0")" && pwd)"
-PORT=${2:-${PORT:-10501}}
+PORT=${2:-${PORT:-3000}}
 PID_FILE="$DIR/.pid"
 CMD="${1:-start}"
 
