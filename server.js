@@ -18,7 +18,9 @@ const {
   loadVtsReference
 } = require("./lib/vts-reference.js");
 const { findWatchArea, getAISStreamBoundingBoxes, listWatchAreas, findWatchZone, listWatchZones } = require("./lib/watch-areas.js");
-const { listAttackStrategies, getCaseStudies } = require("./lib/attack-strategy-reference.js");
+const { listAttackStrategies, getCaseStudies, getContextNote } = require("./lib/attack-strategy-reference.js");
+const { evaluateAisGap, getAisGapEventId } = require("./lib/dark-vessel-inference.js");
+const domain = require("./public/shared/cableguard-domain.js");
 
 const PORT = parsePositiveInteger(process.env.PORT, 3000);
 const AISSTREAM_API_KEY = process.env.AISSTREAM_API_KEY || "";
@@ -29,6 +31,7 @@ const FILTER_MESSAGE_TYPES = ["PositionReport", "ShipStaticData", "StaticDataRep
 const MAX_TRACK_POINTS = 30;
 const STATUS_BROADCAST_INTERVAL_MS = 10000;
 const POSITION_RETENTION_SWEEP_MS = 6 * 60 * 60 * 1000;
+const DARK_VESSEL_SWEEP_MS = 5 * 60 * 1000; // AIS_GAP_WARN_MINUTES is 15 min, so a 5 min sweep catches a new gap within 1-2 cycles.
 const AISSTREAM_INITIAL_RECONNECT_DELAY_MS = 5000;
 const AISSTREAM_MAX_RECONNECT_DELAY_MS = 10 * 60 * 1000;
 const AISSTREAM_RATE_LIMIT_DELAY_MS = Math.max(30000, parsePositiveInteger(process.env.AISSTREAM_RATE_LIMIT_DELAY_MS, 120000));
@@ -468,6 +471,38 @@ async function syncDerivedEvents(vessel, watchArea, watchZone) {
   return derivedEvents;
 }
 
+// Periodic watchdog for dark vessels (AIS gone silent) — see
+// lib/dark-vessel-inference.js. Unlike syncDerivedEvents (triggered by an
+// incoming AIS message), this runs on a timer, since a dark vessel by
+// definition has stopped sending messages. Deliberately does NOT check VTS
+// identification: a vessel going dark while under VTS control is itself the
+// anomaly, unlike the other three detectors where VTS coverage means the
+// vessel's traffic pattern is already explained.
+//
+// Only ever upserts (never deactivates here) — position_uncertainty_nm
+// grows monotonically with gap duration, so a candidate that once qualified
+// stays qualified until a new AIS message arrives. When that happens,
+// syncDerivedEvents' own stale-id cleanup (above) deactivates the ais_gap
+// event automatically, since deriveLiveEvents' current id set won't include
+// it — no extra cleanup path needed here.
+async function sweepDarkVesselCandidates() {
+  const now = Date.now();
+  for (const vessel of liveVessels.values()) {
+    let darkEvent;
+    try {
+      const watchArea = findWatchArea(Number(vessel.lat), Number(vessel.lon));
+      const watchZone = findWatchZone(Number(vessel.lat), Number(vessel.lon));
+      darkEvent = evaluateAisGap(vessel, cableReference, now, { domain, watchArea, watchZone, getContextNote });
+    } catch (error) {
+      console.warn(`Dark-vessel evaluation failed for ${vessel.mmsi}:`, error.message);
+      continue;
+    }
+    if (darkEvent) {
+      await upsertLiveEvent(darkEvent);
+    }
+  }
+}
+
 function applyVtsIdentification(vessel) {
   return annotateVesselWithVts(vessel, vtsReference);
 }
@@ -718,6 +753,11 @@ function startBackgroundServices() {
   backgroundServicesStarted = true;
   connectAISStream();
   setInterval(broadcastStatus, STATUS_BROADCAST_INTERVAL_MS);
+  setInterval(() => {
+    sweepDarkVesselCandidates().catch(error => {
+      console.warn("Dark-vessel sweep failed:", error.message);
+    });
+  }, DARK_VESSEL_SWEEP_MS);
   if (persistenceActive && db.SUSPICIOUS_POSITION_RETENTION_DAYS > 0) {
     setInterval(() => {
       db.pruneOldPositions().catch(error => {
