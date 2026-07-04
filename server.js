@@ -18,6 +18,7 @@ const {
   loadVtsReference
 } = require("./lib/vts-reference.js");
 const { findWatchArea, getAISStreamBoundingBoxes, listWatchAreas, findWatchZone, listWatchZones } = require("./lib/watch-areas.js");
+const { listAttackStrategies, getCaseStudies } = require("./lib/attack-strategy-reference.js");
 
 const PORT = parsePositiveInteger(process.env.PORT, 3000);
 const AISSTREAM_API_KEY = process.env.AISSTREAM_API_KEY || "";
@@ -178,6 +179,13 @@ app.get("/api/events/live", (req, res) => {
 app.get("/api/watch-zones", (req, res) => {
   res.json({
     zones: listWatchZones()
+  });
+});
+
+app.get("/api/attack-strategy-reference", (req, res) => {
+  res.json({
+    strategies: listAttackStrategies(),
+    case_studies: getCaseStudies()
   });
 });
 
