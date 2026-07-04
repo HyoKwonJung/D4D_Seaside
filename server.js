@@ -192,6 +192,41 @@ app.get("/api/attack-strategy-reference", (req, res) => {
   });
 });
 
+// TEMPORARY — local test harness for steps 1-3 without a live AISSTREAM_API_KEY.
+// Feeds a synthetic message through the exact same handleAISStreamMessage()
+// path a real AISStream message takes, so area-value scoring / attack
+// context / dark-vessel detection can be exercised end-to-end. Remove
+// before merging this branch to main.
+if (!process.env.VERCEL) {
+  app.post("/api/debug/inject-ais", express.json(), async (req, res) => {
+    const body = req.body || {};
+    const payload = {
+      MessageType: "PositionReport",
+      MetaData: {
+        MMSI: body.mmsi,
+        ShipName: body.vessel_name || "Unknown",
+        time_utc: body.timestamp || new Date().toISOString()
+      },
+      Message: {
+        PositionReport: {
+          Latitude: body.lat,
+          Longitude: body.lon,
+          Sog: body.sog,
+          Cog: body.cog ?? body.heading,
+          TrueHeading: body.heading
+        }
+      }
+    };
+    await handleAISStreamMessage(JSON.stringify(payload));
+    res.json({ status: "injected", mmsi: String(body.mmsi), vessel: getLiveVesselByMmsi(String(body.mmsi)) });
+  });
+
+  app.post("/api/debug/sweep-dark-vessels", async (req, res) => {
+    await sweepDarkVesselCandidates();
+    res.json({ status: "swept", live_vessel_count: liveVessels.size, live_event_count: liveReviewEvents.size });
+  });
+}
+
 app.post("/api/events/:eventId/review", async (req, res) => {
   if (!persistenceActive) {
     res.status(503).json({
