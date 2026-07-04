@@ -109,35 +109,50 @@ body{font-family:"Malgun Gothic",sans-serif;}
             </div>
           </div>
         </div>
-        <div class="cg-section">
-          <div class="cg-title">Layer Toggles</div>
-          <div class="cg-toggle-list">
-            <label class="cg-check"><input type="checkbox" id="toggle-cables" checked>Show Submarine Cables</label>
-            <label class="cg-check"><input type="checkbox" id="toggle-contours" checked>Show Depth Contours</label>
-            <label class="cg-check"><input type="checkbox" id="toggle-live-ais" checked>Show Live AIS</label>
-            <label class="cg-check"><input type="checkbox" id="toggle-synthetic" checked>Show Synthetic Injections</label>
-            <label class="cg-check"><input type="checkbox" id="toggle-buffers" checked>Show Cable Risk Buffers</label>
-            <div class="cg-button-row cg-button-row-single"><button class="cg-secondary-action" id="show-all-cables" type="button">All Cables</button></div>
+        <div class="cg-section cg-collapsible is-collapsed" id="layer-toggles-section">
+          <button class="cg-title cg-collapse-toggle" type="button" aria-expanded="false" aria-controls="layer-toggles-body" data-collapse-target="layer-toggles-section">
+            <span>Layer Toggles</span>
+            <span class="cg-collapse-icon" aria-hidden="true"></span>
+          </button>
+          <div id="layer-toggles-body" class="cg-collapsible-body">
+            <div class="cg-toggle-list">
+              <label class="cg-check"><input type="checkbox" id="toggle-cables" checked>Show Submarine Cables</label>
+              <label class="cg-check"><input type="checkbox" id="toggle-contours" checked>Show Depth Contours</label>
+              <label class="cg-check"><input type="checkbox" id="toggle-live-ais" checked>Show Live AIS</label>
+              <label class="cg-check"><input type="checkbox" id="toggle-synthetic" checked>Show Synthetic Injections</label>
+              <label class="cg-check"><input type="checkbox" id="toggle-buffers" checked>Show Cable Risk Buffers</label>
+              <div class="cg-button-row cg-button-row-single"><button class="cg-secondary-action" id="show-all-cables" type="button">All Cables</button></div>
+            </div>
           </div>
         </div>
-        <div class="cg-section">
-          <div class="cg-title">Summary</div>
-          <div class="cg-summary-grid">
-            <div class="cg-metric"><div class="cg-metric-label">Total visible threat events</div><div class="cg-metric-value" id="summary-total">0</div></div>
-            <div class="cg-metric"><div class="cg-metric-label">Very High count</div><div class="cg-metric-value" id="summary-very-high">0</div></div>
-            <div class="cg-metric"><div class="cg-metric-label">High count</div><div class="cg-metric-value" id="summary-high">0</div></div>
-            <div class="cg-metric"><div class="cg-metric-label">Dark / no-AIS cues</div><div class="cg-metric-value" id="summary-dark">0</div></div>
-            <div class="cg-metric"><div class="cg-metric-label">Behavior anomalies</div><div class="cg-metric-value" id="summary-anomaly">0</div></div>
-            <div class="cg-metric"><div class="cg-metric-label">Live AIS contacts</div><div class="cg-metric-value" id="summary-live">0</div></div>
+        <div class="cg-section cg-collapsible is-collapsed" id="summary-section">
+          <button class="cg-title cg-collapse-toggle" type="button" aria-expanded="false" aria-controls="summary-body" data-collapse-target="summary-section">
+            <span>Summary</span>
+            <span class="cg-collapse-icon" aria-hidden="true"></span>
+          </button>
+          <div id="summary-body" class="cg-collapsible-body">
+            <div class="cg-summary-grid">
+              <div class="cg-metric"><div class="cg-metric-label">Total visible threat events</div><div class="cg-metric-value" id="summary-total">0</div></div>
+              <div class="cg-metric"><div class="cg-metric-label">Very High count</div><div class="cg-metric-value" id="summary-very-high">0</div></div>
+              <div class="cg-metric"><div class="cg-metric-label">High count</div><div class="cg-metric-value" id="summary-high">0</div></div>
+              <div class="cg-metric"><div class="cg-metric-label">Dark / no-AIS cues</div><div class="cg-metric-value" id="summary-dark">0</div></div>
+              <div class="cg-metric"><div class="cg-metric-label">Behavior anomalies</div><div class="cg-metric-value" id="summary-anomaly">0</div></div>
+              <div class="cg-metric"><div class="cg-metric-label">Live AIS contacts</div><div class="cg-metric-value" id="summary-live">0</div></div>
+            </div>
           </div>
         </div>
-        <div class="cg-section">
-          <div class="cg-title">Filters</div>
-          <div class="cg-filter-grid">
-            <div class="cg-field"><label for="filter-risk">Risk level</label><select id="filter-risk"><option value="all">All</option><option value="medium">Medium+</option><option value="high">High+</option><option value="very_high">Very High</option></select></div>
-            <div class="cg-field"><label for="filter-type">Event type</label><select id="filter-type"><option value="all">All</option><option value="dark_sar">Dark SAR</option><option value="ais_loitering">Loitering / Holding</option><option value="ais_gap">AIS Gap</option><option value="encounter">Encounter / Rendezvous</option><option value="dragging_like">Dragging-compatible</option><option value="live_ais_review">Cable Corridor Review</option></select></div>
-            <div class="cg-field"><label for="filter-region">Region</label><select id="filter-region"><option value="all">All</option><option value="Jeju">Jeju</option><option value="Busan-Geoje">Busan-Geoje</option><option value="West Sea">West Sea</option><option value="Ulleung">Ulleung</option><option value="Korea Strait">Korea Strait</option></select></div>
-            <div class="cg-field"><label for="filter-source">Source</label><select id="filter-source"><option value="all">All</option><option value="live">Live AIS</option><option value="synthetic">Synthetic Injection</option></select></div>
+        <div class="cg-section cg-collapsible is-collapsed" id="filters-section">
+          <button class="cg-title cg-collapse-toggle" type="button" aria-expanded="false" aria-controls="filters-body" data-collapse-target="filters-section">
+            <span>Filters</span>
+            <span class="cg-collapse-icon" aria-hidden="true"></span>
+          </button>
+          <div id="filters-body" class="cg-collapsible-body">
+            <div class="cg-filter-grid">
+              <div class="cg-field"><label for="filter-risk">Risk level</label><select id="filter-risk"><option value="all">All</option><option value="medium">Medium+</option><option value="high">High+</option><option value="very_high">Very High</option></select></div>
+              <div class="cg-field"><label for="filter-type">Event type</label><select id="filter-type"><option value="all">All</option><option value="dark_sar">Dark SAR</option><option value="ais_loitering">Loitering / Holding</option><option value="ais_gap">AIS Gap</option><option value="encounter">Encounter / Rendezvous</option><option value="dragging_like">Dragging-compatible</option><option value="live_ais_review">Cable Corridor Review</option></select></div>
+              <div class="cg-field"><label for="filter-region">Region</label><select id="filter-region"><option value="all">All</option><option value="Jeju">Jeju</option><option value="Busan-Geoje">Busan-Geoje</option><option value="West Sea">West Sea</option><option value="Ulleung">Ulleung</option><option value="Korea Strait">Korea Strait</option></select></div>
+              <div class="cg-field"><label for="filter-source">Source</label><select id="filter-source"><option value="all">All</option><option value="live">Live AIS</option><option value="synthetic">Synthetic Injection</option></select></div>
+            </div>
           </div>
         </div>
         <button class="cg-action" id="export-report" type="button">Export Threat Report</button>
