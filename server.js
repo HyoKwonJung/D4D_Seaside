@@ -17,7 +17,7 @@ const {
   isWithinVtsCoverage,
   loadVtsReference
 } = require("./lib/vts-reference.js");
-const { findWatchArea, getAISStreamBoundingBoxes, listWatchAreas } = require("./lib/watch-areas.js");
+const { findWatchArea, getAISStreamBoundingBoxes, listWatchAreas, findWatchZone, listWatchZones } = require("./lib/watch-areas.js");
 
 const PORT = parsePositiveInteger(process.env.PORT, 3000);
 const AISSTREAM_API_KEY = process.env.AISSTREAM_API_KEY || "";
@@ -172,6 +172,12 @@ app.get("/api/ais/latest", (req, res) => {
 app.get("/api/events/live", (req, res) => {
   res.json({
     events: Array.from(liveReviewEvents.values())
+  });
+});
+
+app.get("/api/watch-zones", (req, res) => {
+  res.json({
+    zones: listWatchZones()
   });
 });
 
@@ -387,6 +393,9 @@ async function handleAISStreamMessage(data) {
   const watchArea = Number.isFinite(normalized.lat) && Number.isFinite(normalized.lon)
     ? findWatchArea(normalized.lat, normalized.lon)
     : null;
+  const watchZone = Number.isFinite(normalized.lat) && Number.isFinite(normalized.lon)
+    ? findWatchZone(normalized.lat, normalized.lon)
+    : null;
   normalized.watch_area_id = watchArea ? watchArea.id : null;
   normalized.watch_area_name = watchArea ? watchArea.name : null;
 
@@ -418,11 +427,11 @@ async function handleAISStreamMessage(data) {
   liveVessels.set(vessel.mmsi, vessel);
   appendTrack(vessel);
   await persistVessel(vessel, payload);
-  await syncDerivedEvents(vessel, watchArea);
+  await syncDerivedEvents(vessel, watchArea, watchZone);
   broadcast({ type: "ais", vessel });
 }
 
-async function syncDerivedEvents(vessel, watchArea) {
+async function syncDerivedEvents(vessel, watchArea, watchZone) {
   const track = trackHistory.get(vessel.mmsi) || [];
   const derivedEvents = deriveLiveEvents({
     vessel,
@@ -431,6 +440,7 @@ async function syncDerivedEvents(vessel, watchArea) {
     trackHistory,
     cables: cableReference,
     watchArea,
+    watchZone,
     vtsLocations: vtsReference
   });
   const currentIds = new Set(derivedEvents.map(event => event.id));

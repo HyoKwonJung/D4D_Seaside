@@ -179,14 +179,28 @@
     }
 
     let score = calculateRiskScore(event);
+
+    // Scale by the surveillance value of the watch zone the event occurred
+    // in (1.0 = neutral, up to ~3.0 for the highest-priority chokepoints).
+    // See lib/watch-areas.js getAreaValueMultiplier() / docs/threat-intel-expansion-design.md.
+    const areaValueMultiplier = toNumber(settings.areaValueMultiplier) ?? 1.0;
+    if (areaValueMultiplier !== 1.0) {
+      event.area_value_multiplier = areaValueMultiplier;
+      score = Math.round(score * areaValueMultiplier);
+    }
+
     if (event.source === "aisstream" && event.event_type === "live_ais_review") {
       score = Math.min(score, 49);
     }
+    score = Math.max(0, Math.min(100, score));
 
     const level = getRiskLevel(score);
     event.risk_score = score;
     event.risk_level = level;
     event.evidence = buildEvidence(event, score);
+    if (areaValueMultiplier > 1.2 && event.watch_zone_name) {
+      event.evidence.push(`Located in ${event.watch_zone_name}, a high-priority surveillance zone (value multiplier x${areaValueMultiplier}).`);
+    }
     event.recommendation = generateRecommendation(event, score, level);
     event.review_status = normalizeReviewStatus(event.review_status);
     return event;
