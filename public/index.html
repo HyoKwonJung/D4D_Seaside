@@ -78,37 +78,35 @@ body{font-family:"Malgun Gothic",sans-serif;}
   <main class="cg-dashboard-grid">
     <section class="cg-map-card" aria-label="Maritime operating picture">
       <div id="map"></div>
-      <div id="depth-legend">
-        <h4>Depth Contours</h4>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#b0d8f0" stroke-width="1"/></svg></div><span class="dt">-50m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#87c0e8" stroke-width="1"/></svg></div><span class="dt">-100m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#5ba3d0" stroke-width="1.2"/></svg></div><span class="dt">-200m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#2e7fb8" stroke-width="1.5"/></svg></div><span class="dt">-500m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#1a5c9a" stroke-width="1.8"/></svg></div><span class="dt">-1,000m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#123f70" stroke-width="1.8"/></svg></div><span class="dt">-1,500m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#0a2d52" stroke-width="2"/></svg></div><span class="dt">-2,000m</span></div>
-        <div class="dl"><div class="dc"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#051a30" stroke-width="2"/></svg></div><span class="dt">-3,000m</span></div>
-      </div>
-      <div id="legend">
-        <h3>Cable Layers</h3>
-        <div class="lsec">Active</div>
-        <div id="la"></div>
-        <div class="lsec">Planned / Construction</div>
-        <div id="lp"></div>
+      <div id="legend" class="is-collapsed">
+        <button class="cg-collapse-toggle" type="button" aria-expanded="false" aria-controls="legend-body" data-collapse-target="legend">
+          <span>Cable Layers</span>
+          <span class="cg-collapse-icon" aria-hidden="true"></span>
+        </button>
+        <div id="legend-body" class="cg-collapsible-body">
+          <div class="lsec">Active</div>
+          <div id="la"></div>
+          <div class="lsec">Planned / Construction</div>
+          <div id="lp"></div>
+        </div>
       </div>
       <div class="cg-panel cg-left" id="cg-left-panel">
-        <div class="cg-section">
-          <div class="cg-title">System Status</div>
-          <div class="cg-disclaimer">Risk prioritization for maritime anomalies, dark-vessel cues, and cable threats. Not hostile-intent confirmation.</div>
-          <div class="cg-status-grid">
-            <div class="cg-status-row"><span>Live AIS</span><strong id="status-live-ais">Disconnected</strong></div>
-            <div class="cg-status-row"><span>Demo Mode</span><strong id="status-demo-mode">ON</strong></div>
-            <div class="cg-status-row"><span>Live vessel count</span><strong id="status-vessel-count">0</strong></div>
-            <div class="cg-status-row"><span>Candidate anomalies</span><strong id="status-threat-count">0</strong></div>
-            <div class="cg-status-row"><span>Watch areas</span><strong id="status-watch-areas">Not loaded</strong></div>
-            <div class="cg-status-row"><span>Persistence</span><strong id="status-persistence">OFF</strong></div>
-            <div class="cg-status-row"><span>Last AIS update</span><strong id="status-last-update">No live update</strong></div>
-            <div class="cg-status-row"><span>Status</span><strong id="status-ais-message">Live AIS disabled - Demo Mode available</strong></div>
+        <div class="cg-section cg-collapsible is-collapsed" id="system-status-section">
+          <button class="cg-title cg-collapse-toggle" type="button" aria-expanded="false" aria-controls="system-status-body" data-collapse-target="system-status-section">
+            <span>System Status</span>
+            <span class="cg-collapse-icon" aria-hidden="true"></span>
+          </button>
+          <div id="system-status-body" class="cg-collapsible-body">
+            <div class="cg-disclaimer">Risk prioritization for maritime anomalies, dark-vessel cues, and cable threats. Not hostile-intent confirmation.</div>
+            <div class="cg-status-grid">
+              <div class="cg-status-row"><span>Live AIS</span><strong id="status-live-ais">Disconnected</strong></div>
+              <div class="cg-status-row"><span>Live vessel count</span><strong id="status-vessel-count">0</strong></div>
+              <div class="cg-status-row"><span>Candidate anomalies</span><strong id="status-threat-count">0</strong></div>
+              <div class="cg-status-row"><span>Watch areas</span><strong id="status-watch-areas">Not loaded</strong></div>
+              <div class="cg-status-row"><span>Persistence</span><strong id="status-persistence">OFF</strong></div>
+              <div class="cg-status-row"><span>Last AIS update</span><strong id="status-last-update">No live update</strong></div>
+              <div class="cg-status-row"><span>Status</span><strong id="status-ais-message">Live AIS disabled - scenario data available</strong></div>
+            </div>
           </div>
         </div>
         <div class="cg-section">
@@ -119,8 +117,7 @@ body{font-family:"Malgun Gothic",sans-serif;}
             <label class="cg-check"><input type="checkbox" id="toggle-live-ais" checked>Show Live AIS</label>
             <label class="cg-check"><input type="checkbox" id="toggle-synthetic" checked>Show Synthetic Injections</label>
             <label class="cg-check"><input type="checkbox" id="toggle-buffers" checked>Show Cable Risk Buffers</label>
-            <label class="cg-check"><input type="checkbox" id="toggle-demo-mode" checked>Demo Mode</label>
-            <div class="cg-button-row"><button class="cg-secondary-action" id="demo-focus-mode" type="button">Demo Focus Mode</button><button class="cg-secondary-action" id="show-all-cables" type="button">All Cables</button></div>
+            <div class="cg-button-row cg-button-row-single"><button class="cg-secondary-action" id="show-all-cables" type="button">All Cables</button></div>
           </div>
         </div>
         <div class="cg-section">

@@ -11,17 +11,6 @@
     verified: "Verified",
     escalated: "Escalated"
   };
-  const DEMO_FOCUS_CABLE_IDS = new Set([
-    "jeju-udo",
-    "jeju-mainland-2",
-    "jeju-mainland-3",
-    "asia-united-gateway-east-aug-east",
-    "jako",
-    "apcn-2",
-    "ulleung-mainland-2",
-    "flag-north-asia-loopreach-north-asia-loop",
-    "southeast-asia-japan-cable-2-sjc2"
-  ]);
   const eventTypeLabels = {
     dark_sar: "Dark SAR",
     ais_loitering: "Loitering / Holding",
@@ -54,7 +43,7 @@
     showBuffers: true,
     demoMode: true,
     liveStatus: "Disconnected",
-    liveStatusDetail: "Live AIS disabled - Demo Mode available",
+    liveStatusDetail: "Live AIS disabled - scenario data available",
     lastAISUpdate: null,
     watchAreas: [],
     persistenceActive: false,
@@ -81,6 +70,7 @@
     }
 
     cacheElements();
+    wireCollapsibles();
     layers.syntheticEvents = L.layerGroup().addTo(map);
     layers.syntheticTracks = L.layerGroup().addTo(map);
     layers.liveAIS = L.layerGroup().addTo(map);
@@ -109,7 +99,6 @@
   function cacheElements() {
     [
       "status-live-ais",
-      "status-demo-mode",
       "status-vessel-count",
       "status-threat-count",
       "status-last-update",
@@ -131,8 +120,6 @@
       "toggle-live-ais",
       "toggle-synthetic",
       "toggle-buffers",
-      "toggle-demo-mode",
-      "demo-focus-mode",
       "show-all-cables",
       "threat-table-body",
       "selected-detail",
@@ -148,6 +135,25 @@
     });
   }
 
+
+  function wireCollapsibles() {
+    document.querySelectorAll("[data-collapse-target]").forEach(button => {
+      const targetId = button.getAttribute("data-collapse-target");
+      const target = targetId ? document.getElementById(targetId) : null;
+      if (!target) return;
+
+      const syncExpandedState = () => {
+        button.setAttribute("aria-expanded", String(!target.classList.contains("is-collapsed")));
+      };
+
+      syncExpandedState();
+      button.addEventListener("click", () => {
+        target.classList.toggle("is-collapsed");
+        syncExpandedState();
+      });
+    });
+  }
+
   function wireControls() {
     bindToggle("toggle-cables", "showCables", applyBaseLayerVisibility);
     bindToggle("toggle-contours", "showContours", applyBaseLayerVisibility);
@@ -160,11 +166,6 @@
       refreshDashboard();
     });
     bindToggle("toggle-buffers", "showBuffers", drawSelectedBuffers);
-    bindToggle("toggle-demo-mode", "demoMode", () => {
-      renderSyntheticTracks();
-      refreshDashboard();
-    });
-
     ["filter-risk", "filter-type", "filter-region", "filter-source"].forEach(id => {
       if (!els[id]) return;
       els[id].addEventListener("change", refreshDashboard);
@@ -172,9 +173,6 @@
 
     if (els["export-report"]) {
       els["export-report"].addEventListener("click", exportThreatReport);
-    }
-    if (els["demo-focus-mode"]) {
-      els["demo-focus-mode"].addEventListener("click", applyDemoFocusMode);
     }
     if (els["show-all-cables"]) {
       els["show-all-cables"].addEventListener("click", showAllCables);
@@ -234,47 +232,11 @@
       "toggle-contours": "showContours",
       "toggle-live-ais": "showLiveAIS",
       "toggle-synthetic": "showSynthetic",
-      "toggle-buffers": "showBuffers",
-      "toggle-demo-mode": "demoMode"
+      "toggle-buffers": "showBuffers"
     };
     Object.entries(mapping).forEach(([id, key]) => {
       if (els[id]) els[id].checked = Boolean(state[key]);
     });
-  }
-
-  function applyDemoFocusMode() {
-    state.demoMode = true;
-    state.showSynthetic = true;
-    state.showBuffers = true;
-    state.showCables = true;
-    state.showContours = false;
-    state.showLiveAIS = false;
-    syncToggleStates();
-
-    if (typeof cableLayers !== "undefined" && typeof CABLES !== "undefined") {
-      CABLES.forEach(cable => {
-        const entry = cableLayers[cable.id];
-        if (!entry || !entry.layer) return;
-        if (DEMO_FOCUS_CABLE_IDS.has(cable.id)) {
-          entry.layer.addTo(map);
-        } else {
-          map.removeLayer(entry.layer);
-        }
-      });
-    }
-    if (typeof contourLayer !== "undefined") map.removeLayer(contourLayer);
-    if (typeof labelLayer !== "undefined") {
-      labelLayer.clearLayers();
-      map.removeLayer(labelLayer);
-    }
-    if (layers.liveAIS) map.removeLayer(layers.liveAIS);
-
-    renderSyntheticTracks();
-    refreshDashboard();
-    const points = state.syntheticEvents.filter(isFinitePoint).map(event => [event.lat, event.lon]);
-    if (points.length) {
-      map.fitBounds(L.latLngBounds(points).pad(0.16), { animate: true });
-    }
   }
 
   function showAllCables() {
@@ -814,11 +776,10 @@
   function updateStatusPanel() {
     const liveClass = state.liveStatus === "Connected" ? "good" : state.liveStatus === "Disabled" ? "warn" : "bad";
     setHtml("status-live-ais", `<span class="cg-pill ${liveClass}">${escapeHtml(state.liveStatus)}</span>`);
-    setHtml("status-demo-mode", `<span class="cg-pill ${state.demoMode ? "good" : "warn"}">${state.demoMode ? "ON" : "OFF"}</span>`);
     setText("status-vessel-count", state.liveVessels.size);
     setText("status-threat-count", getCandidateEventCount());
     setText("status-last-update", state.lastAISUpdate ? formatTime(state.lastAISUpdate) : "No live update");
-    setText("status-ais-message", state.liveStatusDetail || "Live AIS disabled - Demo Mode available");
+    setText("status-ais-message", state.liveStatusDetail || "Live AIS disabled - scenario data available");
     setText("status-watch-areas", formatWatchAreas(state.watchAreas));
     setText("status-persistence", state.persistenceActive
       ? `ON (${state.baselineRetentionDays || "?"}d / ${state.suspiciousRetentionDays || "?"}d)`
@@ -837,7 +798,7 @@
       updateStatusFromHealth(data);
     } catch (error) {
       state.liveStatus = "Disconnected";
-      state.liveStatusDetail = "Live AIS unavailable - Demo Mode available";
+      state.liveStatusDetail = "Live AIS unavailable - scenario data available";
       updateStatusPanel();
     }
   }
@@ -856,7 +817,7 @@
       state.ws = new WebSocket(wsUrl);
     } catch (error) {
       state.liveStatus = "Disconnected";
-      state.liveStatusDetail = "Live AIS unavailable - Demo Mode available";
+      state.liveStatusDetail = "Live AIS unavailable - scenario data available";
       updateStatusPanel();
       return;
     }
@@ -900,7 +861,7 @@
     state.ws.addEventListener("close", () => {
       if (state.liveStatus !== "Disabled") {
         state.liveStatus = "Disconnected";
-        state.liveStatusDetail = "Live AIS disconnected - Demo Mode available";
+        state.liveStatusDetail = "Live AIS disconnected - scenario data available";
         updateStatusPanel();
       }
       setTimeout(connectLiveAIS, 5000);
@@ -909,7 +870,7 @@
     state.ws.addEventListener("error", () => {
       if (state.liveStatus !== "Disabled") {
         state.liveStatus = "Disconnected";
-        state.liveStatusDetail = "Live AIS connection error - Demo Mode available";
+        state.liveStatusDetail = "Live AIS connection error - scenario data available";
         updateStatusPanel();
       }
     });
@@ -922,7 +883,7 @@
     state.suspiciousRetentionDays = data.suspicious_retention_days ?? state.suspiciousRetentionDays;
     if (data.aisstream_status === "disabled") {
       state.liveStatus = "Disabled";
-      state.liveStatusDetail = "Live AIS disabled - Demo Mode available";
+      state.liveStatusDetail = "Live AIS disabled - scenario data available";
     } else if (data.aisstream_status === "rate_limited") {
       state.liveStatus = "Rate Limited";
       state.liveStatusDetail = "Live AIS provider rate-limited requests. Automatic reconnect is backing off.";
@@ -931,7 +892,7 @@
       state.liveStatusDetail = `Live AIS connected across ${data.watch_area_count || state.watchAreas.length || 0} Korean maritime watch areas.`;
     } else {
       state.liveStatus = "Disconnected";
-      state.liveStatusDetail = "Live AIS disconnected - Demo Mode remains available.";
+      state.liveStatusDetail = "Live AIS disconnected - scenario data remains available.";
     }
     if (typeof data.live_vessel_count === "number" && data.live_vessel_count > state.liveVessels.size) {
       setText("status-vessel-count", data.live_vessel_count);
