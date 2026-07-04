@@ -12,7 +12,6 @@
     "vercel-build": "npm run check"
   },
   "dependencies": {
-    "@cableguard-dashboard-backend/sdk": "^0.1.0",
     "@osdk/client": "^2.42.0",
     "@osdk/foundry": "^2.66.0",
     "@osdk/oauth": "^1.12.0",
