@@ -136,7 +136,13 @@
       "show-all-cables",
       "threat-table-body",
       "selected-detail",
-      "export-report"
+      "export-report",
+      "ai-briefing-summary",
+      "ai-briefing-meta",
+      "osint-summary",
+      "intel-summary",
+      "decision-options",
+      "decision-risk-label"
     ].forEach(id => {
       els[id] = document.getElementById(id);
     });
@@ -331,6 +337,7 @@
     if (!visibleEvents.length) {
       state.selectedEventId = null;
       renderSelectedDetail(null);
+      renderCommandSurfaces([], null);
       drawSelectedBuffers();
       return;
     }
@@ -338,7 +345,10 @@
     if (!state.selectedEventId || !visibleEvents.some(event => event.id === state.selectedEventId)) {
       state.selectedEventId = visibleEvents[0].id;
     }
-    renderSelectedDetail(state.eventsById.get(state.selectedEventId));
+
+    const selectedEvent = state.eventsById.get(state.selectedEventId);
+    renderSelectedDetail(selectedEvent);
+    renderCommandSurfaces(visibleEvents, selectedEvent);
     highlightSelectedRow();
     drawSelectedBuffers();
   }
@@ -470,6 +480,93 @@
     </div>`;
   }
 
+
+  function renderCommandSurfaces(events, selectedEvent) {
+    const event = selectedEvent || events[0] || null;
+    if (!event) {
+      setText("ai-briefing-summary", "No visible threat candidates. Maintain maritime watch and adjust filters if needed.");
+      setText("ai-briefing-meta", "No active selection");
+      setHtml("osint-summary", "Waiting for selected threat context.");
+      setHtml("intel-summary", "Evidence and command notes will appear with the selected event.");
+      setText("decision-risk-label", "No active recommendation");
+      setHtml("decision-options", buildDecisionOptions(null));
+      return;
+    }
+
+    const typeLabel = eventTypeLabels[event.event_type] || event.event_type || "Unknown event";
+    const sourceLabel = sourceLabels[event.source] || event.source || "Unknown source";
+    const context = getEventContextLabel(event);
+    const watchArea = event.watch_area_name || event.region || "Unknown area";
+    const veryHighCount = events.filter(item => item.risk_level === "Very High").length;
+    const highCount = events.filter(item => item.risk_level === "High").length;
+    const briefing = `${watchArea}: ${event.risk_level} ${typeLabel} on ${event.vessel_name || "Unknown vessel"}. ${formatDistance(event.distance_to_cable_nm)} from ${context}. ${sourceLabel} requires commander review before escalation.`;
+
+    setText("ai-briefing-summary", briefing);
+    setText("ai-briefing-meta", `${events.length} visible | ${veryHighCount} very high | ${highCount} high`);
+    setText("decision-risk-label", `${event.risk_level} / ${event.risk_score}`);
+
+    setHtml("osint-summary", `
+      ${commandKv("Entity", event.vessel_name || "Unknown")}
+      ${commandKv("MMSI", event.mmsi || "Unknown")}
+      ${commandKv("Source", sourceLabel)}
+      ${commandKv("Context", context)}
+      ${commandKv("Review", formatReviewStatus(event.review_status))}
+      ${commandKv("OSINT Note", event.source === "synthetic_injection" ? "Scenario fixture; corroborate with external intelligence before action." : "Live AIS-derived anomaly; confirm with review workflow and external sources.")}
+    `);
+
+    const evidenceItems = (event.evidence || []).slice(0, 5).map(item => `<li>${escapeHtml(item)}</li>`).join("") || "<li>No evidence statements loaded.</li>";
+    setHtml("intel-summary", `
+      ${commandKv("Priority", `${event.risk_level} (${event.risk_score})`)}
+      ${commandKv("Distance", formatDistance(event.distance_to_cable_nm))}
+      ${commandKv("Speed", formatSpeed(event.speed_kn))}
+      ${commandKv("Duration", formatDuration(event.duration_h))}
+      <div class="cg-title" style="margin-top:12px">Evidence</div>
+      <ul class="cg-list">${evidenceItems}</ul>
+      <div class="cg-recommendation">${escapeHtml(event.recommendation || generateRecommendation(event, event.risk_score, event.risk_level))}</div>
+    `);
+
+    setHtml("decision-options", buildDecisionOptions(event));
+  }
+
+  function commandKv(label, value) {
+    return `<div class="cg-intel-kv"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`;
+  }
+
+  function buildDecisionOptions(event) {
+    if (!event) {
+      return [
+        ["A", "탐지 및 추적", "위협 후보를 선택하면 추적 우선순위가 표시됩니다."],
+        ["B", "경고방송", "위협 후보를 선택하면 경고 기준이 표시됩니다."],
+        ["C", "경비함 이동", "위협 후보를 선택하면 투입 판단점이 표시됩니다."],
+        ["D", "항공기 이동", "위협 후보를 선택하면 감시 방향이 표시됩니다."]
+      ].map(renderDecisionOption).join("");
+    }
+
+    const context = getEventContextLabel(event);
+    const region = event.watch_area_name || event.region || "해당 구역";
+    const distance = formatDistance(event.distance_to_cable_nm);
+    const isVeryHigh = event.risk_level === "Very High" || event.risk_score >= 70;
+    const isHigh = event.risk_level === "High" || event.risk_score >= 50;
+    const closeToCable = toNumber(event.distance_to_cable_nm) !== null && toNumber(event.distance_to_cable_nm) <= 3;
+    const warningBasis = closeToCable ? `${distance} 접근. 항행 경고 및 케이블 보호구역 주의.` : "행동 지속 시 항행 경고 기준 검토.";
+    const patrolBasis = isVeryHigh ? `${context} 우선 출동 후보. 현장 확인 필요.` : isHigh ? `${region} 인근 경비세력 대기 또는 전개 검토.` : "추적 유지 후 추가 징후 발생 시 전개.";
+    const airBasis = isVeryHigh || closeToCable ? `${region} 상공 감시로 접촉 식별 보강.` : "필요 시 광역 감시 자산으로 패턴 확인.";
+
+    return [
+      ["A", "탐지 및 추적", `${event.vessel_name || "Unknown"} ${event.risk_level} 후보를 지속 추적.`],
+      ["B", "경고방송", warningBasis],
+      ["C", "경비함 이동", patrolBasis],
+      ["D", "항공기 이동", airBasis]
+    ].map(renderDecisionOption).join("");
+  }
+
+  function renderDecisionOption(option) {
+    const label = option[0];
+    const title = option[1];
+    const body = option[2];
+    return `<article class="cg-option"><div class="cg-option-head"><span>${escapeHtml(label)}</span><strong>${escapeHtml(title)}</strong></div><p>${escapeHtml(body)}</p></article>`;
+  }
+
   function renderThreatTable(events) {
     const tbody = els["threat-table-body"];
     if (!tbody) return;
@@ -501,6 +598,7 @@
     if (!event) return;
     state.selectedEventId = eventId;
     renderSelectedDetail(event);
+    renderCommandSurfaces(getFilteredEvents(), event);
     highlightSelectedRow();
     drawSelectedBuffers();
 
