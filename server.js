@@ -78,6 +78,9 @@ let gfwLastSarIngest = null;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/korea_3d_cable_map.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "korea_3d_cable_map.html"));
+});
 app.use(ensureRuntimeReady);
 
 function parsePositiveInteger(value, fallback) {

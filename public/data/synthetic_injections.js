@@ -232,32 +232,32 @@ window.SYNTHETIC_EVENTS = [
       "Track is inside 1 nm of a submarine cable route."
     ]
   },
-  {
-    id: "EVT-DRAG-ULLEUNG-001",
-    source: "synthetic_injection",
-    synthetic: true,
-    scenario_id: "dragging_like_ulleung",
-    event_type: "dragging_like",
-    vessel_id: "SYN-DRAG-002",
-    vessel_name: "MV Demo East Creep",
-    mmsi: "999000010",
-    lat: 37.34,
-    lon: 130.31,
-    timestamp: "2026-07-04T10:25:00Z",
-    duration_h: 1.4,
-    speed_kn: 2.8,
-    heading_deg: 86,
-    distance_to_cable_nm: 2.2,
-    nearest_cable: "Ulleung-Mainland 2",
-    region: "Ulleung",
-    ais_status: "on",
-    sar_matched: null,
-    description: "Slow eastbound movement near the Ulleung-mainland cable corridor.",
-    evidence: [
-      "Movement is slow and aligned with a cable corridor.",
-      "Event is within 3 nm of the nearest submarine cable."
-    ]
-  },
+  // {
+  //   id: "EVT-DRAG-ULLEUNG-001",
+  //   source: "synthetic_injection",
+  //   synthetic: true,
+  //   scenario_id: "dragging_like_ulleung",
+  //   event_type: "dragging_like",
+  //   vessel_id: "SYN-DRAG-002",
+  //   vessel_name: "MV Demo East Creep",
+  //   mmsi: "999000010",
+  //   lat: 37.34,
+  //   lon: 130.31,
+  //   timestamp: "2026-07-04T10:25:00Z",
+  //   duration_h: 1.4,
+  //   speed_kn: 2.8,
+  //   heading_deg: 86,
+  //   distance_to_cable_nm: 2.2,
+  //   nearest_cable: "Ulleung-Mainland 2",
+  //   region: "Ulleung",
+  //   ais_status: "on",
+  //   sar_matched: null,
+  //   description: "Slow eastbound movement near the Ulleung-mainland cable corridor.",
+  //   evidence: [
+  //     "Movement is slow and aligned with a cable corridor.",
+  //     "Event is within 3 nm of the nearest submarine cable."
+  //   ]
+  // },
   {
     id: "EVT-DARK-FAR-001",
     source: "synthetic_injection",
@@ -441,19 +441,19 @@ window.SYNTHETIC_TRACKS = [
       [129.06, 35.10, "2026-07-04T01:50:00Z", 2.4]
     ]
   },
-  {
-    vessel_id: "SYN-DRAG-002",
-    vessel_name: "MV Demo East Creep",
-    mmsi: "999000010",
-    track_type: "dragging_like",
-    related_event_id: "EVT-DRAG-ULLEUNG-001",
-    coordinates: [
-      [130.10, 37.32, "2026-07-04T09:00:00Z", 2.7],
-      [130.20, 37.33, "2026-07-04T09:35:00Z", 2.8],
-      [130.31, 37.34, "2026-07-04T10:25:00Z", 2.8],
-      [130.42, 37.36, "2026-07-04T10:55:00Z", 2.9]
-    ]
-  },
+  // {
+  //   vessel_id: "SYN-DRAG-002",
+  //   vessel_name: "MV Demo East Creep",
+  //   mmsi: "999000010",
+  //   track_type: "dragging_like",
+  //   related_event_id: "EVT-DRAG-ULLEUNG-001",
+  //   coordinates: [
+  //     [130.10, 37.32, "2026-07-04T09:00:00Z", 2.7],
+  //     [130.20, 37.33, "2026-07-04T09:35:00Z", 2.8],
+  //     [130.31, 37.34, "2026-07-04T10:25:00Z", 2.8],
+  //     [130.42, 37.36, "2026-07-04T10:55:00Z", 2.9]
+  //   ]
+  // },
   // {
   //   vessel_id: "SYN-LOITER-003",
   //   vessel_name: "FV Demo Waiting",

@@ -86,6 +86,7 @@
     dirtyVessels: new Map(),
     commanderIntent: { text: "" },
     focusAreas: [],
+    mapMaximized: false,
     ws: null
   };
 
@@ -173,7 +174,12 @@
       "commander-intent",
       "commander-intent-save",
       "commander-intent-status",
-      "interest-zone-list"
+      "interest-zone-list",
+      "map-maximize-toggle",
+      "map-3d-open",
+      "map-3d-modal",
+      "map-3d-frame",
+      "map-3d-close"
     ].forEach(id => {
       els[id] = document.getElementById(id);
     });
@@ -250,6 +256,24 @@
         state.decisionChecks.set(`${state.selectedEventId || "none"}|${titleEl.textContent}`, target.checked);
       });
     }
+    if (els["map-maximize-toggle"]) {
+      els["map-maximize-toggle"].addEventListener("click", toggleMapMaximized);
+    }
+    if (els["map-3d-open"]) {
+      els["map-3d-open"].addEventListener("click", openThreeDMap);
+    }
+    if (els["map-3d-close"]) {
+      els["map-3d-close"].addEventListener("click", closeThreeDMap);
+    }
+    if (els["map-3d-modal"]) {
+      const backdrop = els["map-3d-modal"].querySelector("[data-close-map-3d]");
+      if (backdrop) backdrop.addEventListener("click", closeThreeDMap);
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      if (state.mapMaximized) setMapMaximized(false);
+      closeThreeDMap();
+    });
   }
 
   function bindToggle(id, stateKey, onChange) {
@@ -263,6 +287,40 @@
     });
   }
 
+  function toggleMapMaximized() {
+    setMapMaximized(!state.mapMaximized);
+  }
+
+  function setMapMaximized(value) {
+    state.mapMaximized = Boolean(value);
+    const card = document.querySelector(".cg-map-card");
+    if (card) card.classList.toggle("is-maximized", state.mapMaximized);
+    if (els["map-maximize-toggle"]) {
+      els["map-maximize-toggle"].textContent = state.mapMaximized ? "RESTORE" : "MAX";
+      els["map-maximize-toggle"].setAttribute("aria-pressed", String(state.mapMaximized));
+      els["map-maximize-toggle"].setAttribute("title", state.mapMaximized ? "Restore map" : "Maximize map");
+    }
+    window.setTimeout(() => {
+      if (typeof map !== "undefined" && map && typeof map.invalidateSize === "function") {
+        map.invalidateSize();
+      }
+    }, 80);
+  }
+
+  function openThreeDMap() {
+    if (!els["map-3d-modal"]) return;
+    if (els["map-3d-frame"] && !els["map-3d-frame"].getAttribute("src")) {
+      els["map-3d-frame"].setAttribute("src", "/korea_3d_cable_map.html");
+    }
+    els["map-3d-modal"].classList.add("is-open");
+    els["map-3d-modal"].setAttribute("aria-hidden", "false");
+  }
+
+  function closeThreeDMap() {
+    if (!els["map-3d-modal"]) return;
+    els["map-3d-modal"].classList.remove("is-open");
+    els["map-3d-modal"].setAttribute("aria-hidden", "true");
+  }
   function applyBaseLayerVisibility() {
     if (typeof cableLayers !== "undefined") {
       Object.values(cableLayers).forEach(entry => {
@@ -603,11 +661,33 @@
   }
 
 
+  function renderNumericBriefing(events, selectedEvent) {
+    const list = Array.isArray(events) ? events : [];
+    const veryHighCount = list.filter(item => item.risk_level === "Very High").length;
+    const highCount = list.filter(item => item.risk_level === "High").length;
+    const darkCount = list.filter(item => ["dark_sar", "rf_dark", "sar_dark"].includes(item.event_type) || item.ais_status === "off").length;
+    const selectedIndex = selectedEvent ? list.findIndex(item => item.id === selectedEvent.id) + 1 : 0;
+    const selectedLabel = selectedIndex > 0 ? `${selectedIndex}/${list.length}` : `0/${list.length}`;
+    setHtml("ai-briefing-summary", `
+      <div class="cg-briefing-metrics">
+        ${briefingMetric(state.liveVessels.size, "AIS 실시간 추적")}
+        ${briefingMetric(state.focusAreas.length, "관심구역")}
+        ${briefingMetric(list.length, "관심표적")}
+        ${briefingMetric(`${veryHighCount}/${highCount}`, "VH / H")}
+        ${briefingMetric(darkCount, "Dark/RF/SAR")}
+        ${briefingMetric(selectedLabel, "선택 인덱스")}
+      </div>
+    `);
+    setText("ai-briefing-meta", `AIS ${state.liveVessels.size} | Focus ${state.focusAreas.length} | Targets ${list.length}`);
+  }
+
+  function briefingMetric(value, label) {
+    return `<div class="cg-briefing-metric"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+  }
   function renderCommandSurfaces(events, selectedEvent) {
     const event = selectedEvent || events[0] || null;
     if (!event) {
-      setText("ai-briefing-summary", "No visible threat candidates. Maintain maritime watch and adjust filters if needed.");
-      setText("ai-briefing-meta", "No active selection");
+      renderNumericBriefing([], null);
       state.osintActiveKey = null;
       setHtml("osint-summary", "Waiting for Foundry ontology context.");
       setHtml("intel-summary", "Evidence, recommendation, and OSINT findings will appear with the selected event.");
@@ -617,16 +697,10 @@
       return;
     }
 
-    const typeLabel = eventTypeLabels[event.event_type] || event.event_type || "Unknown event";
     const sourceLabel = getSourceLabel(event);
     const context = getEventContextLabel(event);
-    const watchArea = event.watch_area_name || event.region || "Unknown area";
-    const veryHighCount = events.filter(item => item.risk_level === "Very High").length;
-    const highCount = events.filter(item => item.risk_level === "High").length;
-    const briefing = `${watchArea}: ${event.risk_level} ${typeLabel} on ${event.vessel_name || "Unknown vessel"}. ${formatDistance(event.distance_to_cable_nm)} from ${context}. ${sourceLabel} requires commander review before escalation.`;
 
-    setText("ai-briefing-summary", briefing);
-    setText("ai-briefing-meta", `${events.length} visible | ${veryHighCount} very high | ${highCount} high`);
+    renderNumericBriefing(events, event);
     setText("decision-risk-label", `${event.risk_level} / ${event.risk_score}`);
 
     renderOntologyPanel(event, sourceLabel, context);
@@ -1396,9 +1470,6 @@
 
   function applyAiDecisionResult(event, data) {
     setDecisionOptions(data.options.map(renderDecisionCheckItem).join(""));
-    if (typeof data.briefing === "string" && data.briefing.trim()) {
-      setText("ai-briefing-summary", data.briefing.trim());
-    }
     if (data.provider && data.provider !== "local") {
       setText("decision-risk-label", `${event.risk_level} / ${event.risk_score} | ${String(data.provider).toUpperCase()}`);
     }

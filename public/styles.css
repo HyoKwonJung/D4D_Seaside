@@ -1552,3 +1552,153 @@ body {
     min-width: 140px;
   }
 }
+
+.cg-map-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 72px;
+  z-index: 1705;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.cg-map-tool-button {
+  min-width: 44px;
+  min-height: 36px;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 8px;
+  background: rgba(5, 12, 28, 0.9);
+  color: #e0f2fe;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.cg-map-tool-button:hover,
+.cg-map-tool-button:focus-visible {
+  border-color: rgba(186, 230, 253, 0.86);
+  background: rgba(14, 116, 144, 0.78);
+  outline: none;
+}
+
+.cg-dashboard-grid {
+  position: relative;
+}
+
+.cg-map-card.is-maximized {
+  position: absolute;
+  inset: 0;
+  z-index: 1700;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.46);
+}
+
+.cg-map-card.is-maximized .cg-map-toolbar {
+  left: 72px;
+}
+
+.cg-map-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+  display: none;
+  pointer-events: none;
+}
+
+.cg-map-modal.is-open {
+  display: block;
+  pointer-events: auto;
+}
+
+.cg-map-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.cg-map-modal-dialog {
+  position: absolute;
+  inset: 42px;
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  overflow: hidden;
+  border: 2px solid rgba(14, 116, 144, 0.94);
+  border-radius: 16px;
+  background: #020814;
+}
+
+.cg-map-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 12px 7px 16px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.24);
+  background: rgba(5, 12, 28, 0.96);
+  color: #f8fbff;
+}
+
+.cg-map-modal-header strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+#map-3d-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000d1a;
+}
+
+.cg-briefing-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  height: 100%;
+  align-content: center;
+}
+
+.cg-briefing-metric {
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  border-radius: 8px;
+  background: rgba(8, 17, 35, 0.72);
+}
+
+.cg-briefing-metric strong {
+  display: block;
+  color: #f8fbff;
+  font-size: clamp(18px, 1.4vw, 28px);
+  line-height: 1;
+}
+
+.cg-briefing-metric span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(186, 230, 253, 0.72);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .cg-map-toolbar {
+    top: 10px;
+    left: 66px;
+  }
+
+  .cg-map-modal-dialog {
+    inset: 12px;
+  }
+
+  .cg-briefing-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
