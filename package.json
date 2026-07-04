@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "db:migrate": "node scripts/db-migrate.js",
-    "check": "node --check server.js && node --check lib/db.js && node --check lib/cable-reference.js && node --check lib/live-review-engine.js && node --check lib/stealthmole.js && node --check lib/vts-reference.js && node --check lib/watch-areas.js && node --check lib/attack-strategy-reference.js && node --check lib/dark-vessel-inference.js && node --check public/shared/cableguard-domain.js && node --check public/app.js && node --check public/data/synthetic_injections.js && node --check scripts/db-migrate.js && node --check scripts/collect-reference-data.js && node --check api/server.js",
+    "check": "node --check server.js && node --check lib/db.js && node --check lib/cable-reference.js && node --check lib/live-review-engine.js && node --check lib/stealthmole.js && node --check lib/vts-reference.js && node --check lib/watch-areas.js && node --check lib/attack-strategy-reference.js && node --check lib/dark-vessel-inference.js && node --check public/shared/cableguard-domain.js && node --check public/app.js && node --check public/data/synthetic_injections.js && node --check scripts/db-migrate.js && node --check scripts/collect-reference-data.js && node --check scripts/import-khoa-cables.js && node --check api/server.js",
     "build": "npm run check",
     "vercel-build": "npm run check"
   },
@@ -16,6 +16,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.16.3",
+    "shapefile": "^0.6.6",
     "ws": "^8.18.0"
   },
   "devDependencies": {
