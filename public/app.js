@@ -3,7 +3,8 @@
   const domain = window.CableGuardDomain || {};
   const sourceLabels = {
     synthetic_injection: "Synthetic Demo Injection",
-    aisstream: "Live AIS"
+    aisstream: "Live AIS",
+    gfw: "GFW Satellite SAR"
   };
   const reviewStatusLabels = {
     unverified: "Unverified",
@@ -546,6 +547,7 @@
         if (sourceFilter === "live" && event.source !== "aisstream") return false;
         if (sourceFilter === "synthetic" && event.source !== "synthetic_injection") return false;
         if (sourceFilter === "foundry" && event.source_system !== "foundry-osdk") return false;
+        if (sourceFilter === "dark" && !isDarkVesselEvent(event)) return false;
         return true;
       })
       .sort((a, b) => b.risk_score - a.risk_score || String(a.id).localeCompare(String(b.id)));
@@ -556,6 +558,14 @@
     if (riskFilter === "high") return event.risk_score >= 50;
     if (riskFilter === "very_high") return event.risk_score >= 70;
     return true;
+  }
+
+  // AIS 미매칭 다크 탐지 계열 이벤트 (SAR/RF 미매칭, 다크 상태, 다크 이벤트 타입)
+  function isDarkVesselEvent(event) {
+    if (!event) return false;
+    if (event.sar_matched === false || event.rf_matched === false) return true;
+    if (["dark_sar", "sar_dark", "rf_dark"].includes(event.event_type)) return true;
+    return /^(rf-only|sar-only|multi-sensor|confirmed-dark)$/.test(String(event.dark_vessel_status || ""));
   }
 
   // Threat List 상단 등급 버튼: 선택한 등급 구간만 목록·지도에 표시 (정확 구간 매칭)
@@ -625,7 +635,7 @@
       if (!isFinitePoint(event)) return;
       const marker = L.marker([event.lat, event.lon], {
         icon: L.divIcon({
-          className: `threat-marker ${markerClassByType[event.event_type] || "live_ais_review"}`,
+          className: `threat-marker ${markerClassByType[event.event_type] || "live_ais_review"}${isDarkVesselEvent(event) ? " is-dark-blink" : ""}`,
           html: "",
           iconSize: [20, 20],
           iconAnchor: [10, 10],
@@ -666,23 +676,16 @@
     const veryHighCount = list.filter(item => item.risk_level === "Very High").length;
     const highCount = list.filter(item => item.risk_level === "High").length;
     const darkCount = list.filter(item => ["dark_sar", "rf_dark", "sar_dark"].includes(item.event_type) || item.ais_status === "off").length;
-    const selectedIndex = selectedEvent ? list.findIndex(item => item.id === selectedEvent.id) + 1 : 0;
-    const selectedLabel = selectedIndex > 0 ? `${selectedIndex}/${list.length}` : `0/${list.length}`;
-    setHtml("ai-briefing-summary", `
-      <div class="cg-briefing-metrics">
-        ${briefingMetric(state.liveVessels.size, "AIS 실시간 추적")}
-        ${briefingMetric(state.focusAreas.length, "관심구역")}
-        ${briefingMetric(list.length, "관심표적")}
-        ${briefingMetric(`${veryHighCount}/${highCount}`, "VH / H")}
-        ${briefingMetric(darkCount, "Dark/RF/SAR")}
-        ${briefingMetric(selectedLabel, "선택 인덱스")}
-      </div>
-    `);
-    setText("ai-briefing-meta", `AIS ${state.liveVessels.size} | Focus ${state.focusAreas.length} | Targets ${list.length}`);
-  }
-
-  function briefingMetric(value, label) {
-    return `<div class="cg-briefing-metric"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+    const liveCount = state.liveVessels.size;
+    const focus = state.focusAreas[0] || null;
+    // 문장형 브리핑(2~3문장)에 핵심 수치(전체 AIS 수신/추적 표적/위험 등급)를 포함한다.
+    const sentences = [
+      `Receiving live AIS from ${liveCount} vessels, with ${list.length} tracked threat candidates in the current picture.`,
+      `${veryHighCount} candidates are rated Very High and ${highCount} High, including ${darkCount} dark/RF/SAR contacts.`
+    ];
+    if (focus) sentences.push(`Priority focus area is ${focus.label} (${state.focusAreas.length} active).`);
+    setText("ai-briefing-summary", sentences.join(" "));
+    setText("ai-briefing-meta", `AIS ${liveCount} | Focus ${state.focusAreas.length} | Targets ${list.length}`);
   }
   function renderCommandSurfaces(events, selectedEvent) {
     const event = selectedEvent || events[0] || null;
@@ -1493,7 +1496,9 @@
       summary: {
         visible: (events || []).length,
         very_high: (events || []).filter(item => item.risk_level === "Very High").length,
-        high: (events || []).filter(item => item.risk_level === "High").length
+        high: (events || []).filter(item => item.risk_level === "High").length,
+        live_ais_vessels: state.liveVessels.size,
+        dark: (events || []).filter(item => ["dark_sar", "rf_dark", "sar_dark"].includes(item.event_type) || item.ais_status === "off").length
       },
       selected_event: summarizeEventForAi(event),
       visible_events: (events || []).slice(0, 20).map(summarizeEventForAi),
@@ -2131,9 +2136,22 @@
     });
   }
 
+  // 중국 연안(122.5°E 서쪽)의 협조(AIS 송신) 선박 점은 표시하지 않는다.
+  // 다크 탐지는 이벤트 마커로 별도 표시되므로 영향 없음. 수집·상관 분석은 계속 유지.
+  function isInChinaCoastalHideZone(lat, lon) {
+    return Number(lat) >= 26.0 && Number(lat) <= 41.5 && Number(lon) >= 116.0 && Number(lon) <= 122.5;
+  }
+
   function renderLiveAISMarker(vessel) {
     if (!layers.liveAIS) return;
     const existing = state.liveMarkers.get(vessel.mmsi);
+    if (isInChinaCoastalHideZone(vessel.lat, vessel.lon)) {
+      if (existing) {
+        layers.liveAIS.removeLayer(existing);
+        state.liveMarkers.delete(vessel.mmsi);
+      }
+      return;
+    }
     const style = getLiveAISMarkerStyle(vessel);
 
     if (existing) {

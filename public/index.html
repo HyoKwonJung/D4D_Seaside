@@ -64,7 +64,7 @@ body{font-family:"Malgun Gothic",sans-serif;}
 <div class="cg-dashboard-shell">
   <header id="header" class="cg-command-header">
     <h1>MDA Dashboard</h1>
-    <p>Maritime Threat Sentinel Aid | CableGuard-MVP</p>
+    <p>Maritime Threat Sentinel Aid</p>
   </header>
 
   <section class="cg-panel cg-briefing-panel" aria-label="AI briefing">
@@ -85,11 +85,11 @@ body{font-family:"Malgun Gothic",sans-serif;}
         <span>INTENT</span>
         <textarea id="commander-intent" rows="2" placeholder="e.g. Prioritize dark contacts within 3 nm of cables in Jeju and Busan waters, and vessels reappearing after AIS gaps"></textarea>
       </label>
+      <button class="cg-secondary-action" id="commander-intent-save" type="button">Update Intent</button>
     </div>
     <div class="cg-intent-footer">
       <span id="commander-intent-status">Local rules active</span>
       <div class="cg-focus-list" id="interest-zone-list">No recommended focus area yet.</div>
-      <button class="cg-secondary-action" id="commander-intent-save" type="button">Update Intent</button>
     </div>
   </section>
 
@@ -174,7 +174,7 @@ body{font-family:"Malgun Gothic",sans-serif;}
               <div class="cg-field"><label for="filter-risk">Risk level</label><select id="filter-risk"><option value="all">All</option><option value="medium">Medium+</option><option value="high">High+</option><option value="very_high">Very High</option></select></div>
               <div class="cg-field"><label for="filter-type">Event type</label><select id="filter-type"><option value="all">All</option><option value="dark_sar">Dark SAR</option><option value="rf_dark">RF Dark Contact</option><option value="sar_dark">SAR Dark Contact</option><option value="ais_loitering">Loitering / Holding</option><option value="ais_gap">AIS Gap</option><option value="encounter">Encounter / Rendezvous</option><option value="dragging_like">Dragging-compatible</option><option value="live_ais_review">Cable Corridor Review</option></select></div>
               <div class="cg-field"><label for="filter-region">Region</label><select id="filter-region"><option value="all">All</option><option value="Jeju">Jeju</option><option value="Busan-Geoje">Busan-Geoje</option><option value="West Sea">West Sea</option><option value="Ulleung">Ulleung</option><option value="Korea Strait">Korea Strait</option></select></div>
-              <div class="cg-field"><label for="filter-source">Source</label><select id="filter-source"><option value="all">All</option><option value="live">Live AIS</option><option value="synthetic">Synthetic Injection</option><option value="foundry">Foundry (persisted)</option></select></div>
+              <div class="cg-field"><label for="filter-source">Source</label><select id="filter-source"><option value="all">All</option><option value="dark">Dark Vessel Track</option><option value="live">Live AIS</option><option value="synthetic">Synthetic Injection</option><option value="foundry">Foundry (persisted)</option></select></div>
             </div>
           </div>
         </div>

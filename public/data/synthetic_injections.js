@@ -140,7 +140,7 @@ window.SYNTHETIC_EVENTS = [
     vessel_name: "MV Demo West Transit",
     mmsi: "999000004",
     lat: 36.15,
-    lon: 125.72,
+    lon: 124.22,
     timestamp: "2026-07-04T07:00:00Z",
     duration_h: 1.4,
     speed_kn: 10.5,
@@ -377,19 +377,19 @@ window.SYNTHETIC_TRACKS = [
       [126.43, 35.88, "2026-07-04T03:55:00Z", 8.7]
     ]
   },
-  {
-    vessel_id: "SYN-GAP-002",
-    vessel_name: "MV Demo West Transit",
-    mmsi: "999000004",
-    track_type: "ais_gap",
-    related_event_id: "EVT-GAP-WEST-002",
-    coordinates: [
-      [125.28, 35.91, "2026-07-04T05:40:00Z", 10.3],
-      [125.50, 36.03, "2026-07-04T06:05:00Z", 10.9],
-      [125.72, 36.15, "2026-07-04T07:00:00Z", 10.5],
-      [125.96, 36.28, "2026-07-04T07:25:00Z", 10.6]
-    ]
-  },
+  // {
+  //   vessel_id: "SYN-GAP-002",
+  //   vessel_name: "MV Demo West Transit",
+  //   mmsi: "999000004",
+  //   track_type: "ais_gap",
+  //   related_event_id: "EVT-GAP-WEST-002",
+  //   coordinates: [
+  //     [125.28, 35.91, "2026-07-04T05:40:00Z", 10.3],
+  //     [125.50, 36.03, "2026-07-04T06:05:00Z", 10.9],
+  //     [125.72, 36.15, "2026-07-04T07:00:00Z", 10.5],
+  //     [125.96, 36.28, "2026-07-04T07:25:00Z", 10.6]
+  //   ]
+  // },
   {
     vessel_id: "SYN-PAIR-001-A",
     vessel_name: "MV Demo Pair A",

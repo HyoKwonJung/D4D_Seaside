@@ -441,6 +441,18 @@ body {
   content: "";
 }
 
+/* AIS 미매칭 다크 탐지: 점멸하는 빨강 마커 */
+@keyframes cg-dark-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.12; }
+}
+
+.threat-marker.is-dark-blink {
+  color: #ff2d2d;
+  background: #dc2626;
+  animation: cg-dark-blink 1.1s ease-in-out infinite;
+}
+
 .threat-marker.dark_sar { color: #ef4444; background: #ef4444; }
 .threat-marker.rf_dark { color: #22d3ee; background: #0891b2; }
 .threat-marker.sar_dark { color: #fb7185; background: #be123c; }
@@ -889,8 +901,15 @@ body {
 .cg-intent-grid {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr;
+  /* INTENT 입력 행 오른쪽에 Update Intent 버튼을 같은 높이로 배치 */
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: stretch;
   gap: 10px;
+}
+
+.cg-intent-grid .cg-secondary-action {
+  height: 100%;
+  padding: 6px 10px;
 }
 
 .cg-intent-field {
@@ -934,18 +953,11 @@ body {
 
 .cg-intent-footer {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) 132px;
+  grid-template-columns: 112px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   margin-top: 8px;
   min-width: 0;
-}
-
-.cg-intent-footer .cg-secondary-action {
-  min-height: 30px;
-  padding: 6px 10px;
-  justify-self: end;
-  width: 132px;
 }
 
 #commander-intent-status {
@@ -1367,7 +1379,7 @@ body {
   }
 
   .cg-intent-footer {
-    grid-template-columns: minmax(0, 1fr) 132px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .cg-focus-list {

@@ -422,9 +422,11 @@ function buildLocalDecisionSupport(input) {
   const summary = input.summary || {};
   const visibleCount = Number(summary.visible) || (Array.isArray(input.visible_events) ? input.visible_events.length : 0);
   const veryHighCount = Number(summary.very_high) || 0;
+  const highCount = Number(summary.high) || 0;
+  const liveAisCount = Number(summary.live_ais_vessels) || 0;
   const focusNames = focusAreas.slice(0, 2).map(area => area.label).filter(Boolean).join(", ");
   const briefing = [
-    `Currently tracking ${visibleCount} visible threat candidates, of which ${veryHighCount} are rated Very High.`,
+    `Receiving live AIS from ${liveAisCount} vessels; ${visibleCount} tracked threat candidates are in the picture (${veryHighCount} Very High, ${highCount} High).`,
     `The top contact is ${vessel} (${riskLevel}, ${distance} from the nearest cable).`,
     focusNames ? `Priority focus areas are ${focusNames}.` : "No priority focus area is currently designated."
   ].join(" ");
@@ -452,7 +454,7 @@ async function requestKimiDecisionSupport(input, fallback) {
     "You are an operational maritime decision-support assistant for a commander.",
     "Return strict JSON only with this schema:",
     "{\"briefing\":\"...\",\"options\":[{\"label\":\"A\",\"title\":\"...\",\"body\":\"...\"}],\"focus_areas\":[...]}",
-    "briefing: exactly 3 English sentences briefing the commander on the current situation - suspect vessel count, top threat, and main focus areas (use the summary and focus_areas data).",
+    "briefing: 2 to 3 English sentences briefing the commander. It MUST cite the key numbers from summary: total live AIS vessels received (live_ais_vessels), tracked threat candidates (visible), and Very High / High counts. Then name the top threat and main focus areas (use the summary and focus_areas data).",
     "CRITICAL: every text value MUST be written in English only. The input data may contain Korean - translate that context into English and never echo Korean characters in your output.",
     "Write everything in English. Keep each body under 90 characters.",
     "Return 6 to 8 options ordered by priority. Each option is one commander checklist action: title is a short action label of at most 3 words (e.g. \"Detect & Track\", \"Warning Broadcast\"), body is one short imperative sentence with the rationale.",
@@ -1168,6 +1170,14 @@ async function ingestGfwSarDarkCandidates(input) {
           }
           if (!options.dryRun) {
             const event = buildGfwSarEvent(detection, area);
+            // 케이블 방어 목적상, 케이블에서 먼 원양 다크 탐지는 이벤트화하지 않는다
+            // (탐지 자체는 위에서 DB에 보존됨). 제외 수는 events_skipped_far로 보고.
+            const cableDistance = Number(event.distance_to_cable_nm);
+            if (Number.isFinite(cableDistance) && cableDistance > options.maxCableDistanceNm) {
+              areaResult.events_skipped_far = (areaResult.events_skipped_far || 0) + 1;
+              summary.events_skipped_far = (summary.events_skipped_far || 0) + 1;
+              continue;
+            }
             await upsertLiveEvent(event);
             await pushDetectionToFoundry(detection);
             areaResult.events_upserted += 1;
@@ -1207,10 +1217,15 @@ function normalizeGfwSarIngestOptions(input) {
   } else {
     areas = WATCH_AREAS;
   }
+  // 이벤트화할 다크 탐지의 최대 케이블 이격 (기본 10nm). 먼 원양 탐지는 DB에만 보존.
+  const maxCableDistanceNm = Math.max(1, Number(
+    input.max_cable_distance_nm ?? input.maxCableDistanceNm ?? process.env.GFW_SAR_MAX_CABLE_NM
+  ) || 10);
   return {
     startDate,
     endDate,
     limitPerArea,
+    maxCableDistanceNm,
     dryRun: parseBoolean(input.dry_run ?? input.dryRun, false),
     areas: areas.length ? areas : WATCH_AREAS
   };
